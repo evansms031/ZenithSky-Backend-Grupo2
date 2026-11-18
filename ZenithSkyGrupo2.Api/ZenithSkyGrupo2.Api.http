@@ -1,0 +1,6 @@
+@ZenithSkyGrupo2.Api_HostAddress = http://localhost:5093
+
+GET {{ZenithSkyGrupo2.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
