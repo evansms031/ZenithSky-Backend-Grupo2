@@ -16,4 +16,8 @@
     <Folder Include="SQL\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="ZenithSkyGrupo2.Test.csproj" />
+  </ItemGroup>
+
 </Project>
