@@ -16,9 +16,11 @@ builder.Services.AddScoped<SqlConnectionFactory>();
 
 // Registrar clases de Data
 builder.Services.AddScoped<AirplaneTypeData>();
+builder.Services.AddScoped<AirplaneData>();
 
 // Registrar clases de Business
 builder.Services.AddScoped<AirplaneTypeService>();
+builder.Services.AddScoped<AirplaneService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
