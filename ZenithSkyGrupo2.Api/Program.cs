@@ -1,3 +1,4 @@
+
 using ZenithSkyGrupo2.Api.Business;
 using ZenithSkyGrupo2.Api.Data;
 
@@ -13,11 +14,13 @@ builder.Services.AddScoped<SqlConnectionFactory>();
 builder.Services.AddScoped<AirplaneTypeData>();
 builder.Services.AddScoped<AirlineData>();
 builder.Services.AddScoped<AirportData>();
+builder.Services.AddScoped<AirplaneData>();
 
 // Registrar clases de Business
 builder.Services.AddScoped<AirplaneTypeService>();
 builder.Services.AddScoped<AirlineService>();
 builder.Services.AddScoped<AirportService>();
+builder.Services.AddScoped<AirplaneService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
