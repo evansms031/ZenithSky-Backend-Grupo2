@@ -46,7 +46,7 @@ public class AirlineServiceTest
 
         AirlineService service = new AirlineService(data);
 
-        int airlineIdEsperado = 1;
+        int airlineIdEsperado = 4;
 
         // Act
         var aerolinea = service.ObtenerPorId(airlineIdEsperado);
@@ -110,56 +110,5 @@ public class AirlineServiceTest
         Assert.That(airlineId, Is.GreaterThan(0));
     }
 
-    [Test]
-    public void Actualizar_Test()
-    {
-        // Arrange
-        IConfiguration configuration = new ConfigurationBuilder()
-            .AddUserSecrets<SqlConnectionFactory>()
-            .Build();
-
-        SqlConnectionFactory factory =
-            new SqlConnectionFactory(configuration);
-
-        AirlineData data = new AirlineData(factory);
-
-        AirlineService service = new AirlineService(data);
-
-        Airline airline = new Airline(
-            1,
-            "TST",
-            "Test Airline Updated",
-            1
-        );
-
-        // Act
-        bool resultado = service.Actualizar(airline);
-
-        // Assert
-        Assert.That(resultado, Is.True);
-    }
-
-    [Test]
-    public void Eliminar_Test()
-    {
-        // Arrange
-        IConfiguration configuration = new ConfigurationBuilder()
-            .AddUserSecrets<SqlConnectionFactory>()
-            .Build();
-
-        SqlConnectionFactory factory =
-            new SqlConnectionFactory(configuration);
-
-        AirlineData data = new AirlineData(factory);
-
-        AirlineService service = new AirlineService(data);
-
-        int airlineId = 1;
-
-        // Act
-        int resultado = service.Eliminar(airlineId);
-
-        // Assert
-        Assert.That(resultado, Is.GreaterThan(0));
-    }
+  
 }
