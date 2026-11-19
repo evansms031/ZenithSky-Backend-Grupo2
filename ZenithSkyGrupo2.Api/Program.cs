@@ -3,34 +3,25 @@ using ZenithSkyGrupo2.Api.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
 
 builder.Services.AddScoped<SqlConnectionFactory>();
-// Configurar controladores
-builder.Services.AddControllers();
 
-// Registrar la conexión a SQL Server
-builder.Services.AddScoped<SqlConnectionFactory>();
-
-// Registrar clases de Data
+// Data
 builder.Services.AddScoped<AirplaneTypeData>();
+builder.Services.AddScoped<AirlineData>();
 
-// Registrar clases de Business
+// Business
 builder.Services.AddScoped<AirplaneTypeService>();
+builder.Services.AddScoped<AirlineService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-
-
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-   
     app.UseSwagger();
     app.UseSwaggerUI();
 }
@@ -42,5 +33,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
-
