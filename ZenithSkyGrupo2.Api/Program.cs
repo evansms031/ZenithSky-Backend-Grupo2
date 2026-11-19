@@ -6,15 +6,17 @@ var builder = WebApplication.CreateBuilder(args);
 // Configurar controladores
 builder.Services.AddControllers();
 
-// Registrar la conexion a SQL Server
+// Registrar la conexión a SQL Server
 builder.Services.AddScoped<SqlConnectionFactory>();
 
 // Registrar clases de Data
 builder.Services.AddScoped<AirplaneTypeData>();
+builder.Services.AddScoped<AirlineData>();
 builder.Services.AddScoped<AirportData>();
 
 // Registrar clases de Business
 builder.Services.AddScoped<AirplaneTypeService>();
+builder.Services.AddScoped<AirlineService>();
 builder.Services.AddScoped<AirportService>();
 
 builder.Services.AddEndpointsApiExplorer();
@@ -22,7 +24,7 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configurar el flujo de la aplicacion
+// Configurar el flujo de la aplicación
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
