@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ZenithSkyGrupo2.Api.Business;
-using System.Collections.Generic;
 using ZenithSkyGrupo2.Api.Domain;
+using ZenithSkyGrupo2.Api.Dto;
 
 namespace ZenithSkyGrupo2.Api.Controllers
 {
@@ -17,13 +17,23 @@ namespace ZenithSkyGrupo2.Api.Controllers
             this.airplaneTypeService = airplaneTypeService;
         }
 
+        // GET /api/airplane-types
         [HttpGet]
-        public ActionResult<List<AirplaneType>> ObtenerTodos()
+        public ActionResult<List<AirplaneTypeDTO>> ObtenerTodos()
         {
             List<AirplaneType> tipos =
                 airplaneTypeService.ObtenerTodos();
 
-            return Ok(tipos);
+            List<AirplaneTypeDTO> respuesta = tipos
+                .Select(t => new AirplaneTypeDTO
+                {
+                    TypeId = t.TypeId,
+                    Identifier = t.Identifier,
+                    Description = t.Description
+                })
+                .ToList();
+
+            return Ok(respuesta);
         }
     }
 }

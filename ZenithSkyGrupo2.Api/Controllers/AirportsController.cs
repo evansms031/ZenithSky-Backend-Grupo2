@@ -1,8 +1,8 @@
-
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using ZenithSkyGrupo2.Api.Business;
 using ZenithSkyGrupo2.Api.Domain;
+using ZenithSkyGrupo2.Api.Dto;
 
 namespace ZenithSkyGrupo2.Api.Controllers
 {
@@ -18,44 +18,91 @@ namespace ZenithSkyGrupo2.Api.Controllers
         }
 
         // GET: api/airports
+        // GET: api/airports?busqueda=SJO
         [HttpGet]
-        public IActionResult ObtenerTodos([FromQuery] string? busqueda)
+        public ActionResult<List<AirportDTO>> ObtenerTodos(
+            [FromQuery] string? busqueda)
         {
             List<Airport> aeropuertos =
                 airportService.ObtenerTodos(busqueda);
 
-            return Ok(aeropuertos);
+            List<AirportDTO> respuesta = aeropuertos
+                .Select(a => new AirportDTO
+                {
+                    AirportId = a.AirportId,
+                    Iata = a.Iata,
+                    Icao = a.Icao,
+                    Name = a.Name
+                })
+                .ToList();
+
+            return Ok(respuesta);
         }
 
         // GET: api/airports/1
         [HttpGet("{id}")]
-        public IActionResult ObtenerPorId(int id)
+        public ActionResult<AirportDTO> ObtenerPorId(int id)
         {
-            Airport? aeropuerto = airportService.ObtenerPorId(id);
+            Airport? aeropuerto =
+                airportService.ObtenerPorId(id);
 
             if (aeropuerto == null)
             {
-                return NotFound("El aeropuerto no existe.");
+                return NotFound(
+                    "El aeropuerto no existe.");
             }
 
-            return Ok(aeropuerto);
+            AirportDTO respuesta = new AirportDTO
+            {
+                AirportId = aeropuerto.AirportId,
+                Iata = aeropuerto.Iata,
+                Icao = aeropuerto.Icao,
+                Name = aeropuerto.Name
+            };
+
+            return Ok(respuesta);
         }
 
         // POST: api/airports
         [HttpPost]
-        public IActionResult Insertar([FromBody] Airport aeropuerto)
+        public IActionResult Insertar(
+            [FromBody] AirportDTO aeropuertoDTO)
         {
             try
             {
-                int airportId = airportService.Insertar(aeropuerto);
+                Airport aeropuerto = new Airport(
+                    0,
+                    aeropuertoDTO.Iata,
+                    aeropuertoDTO.Icao,
+                    aeropuertoDTO.Name
+                );
+
+                int airportId =
+                    airportService.Insertar(aeropuerto);
 
                 Airport? aeropuertoCreado =
                     airportService.ObtenerPorId(airportId);
 
+                if (aeropuertoCreado == null)
+                {
+                    return StatusCode(
+                        500,
+                        "El aeropuerto fue creado, pero no se pudo recuperar."
+                    );
+                }
+
+                AirportDTO respuesta = new AirportDTO
+                {
+                    AirportId = aeropuertoCreado.AirportId,
+                    Iata = aeropuertoCreado.Iata,
+                    Icao = aeropuertoCreado.Icao,
+                    Name = aeropuertoCreado.Name
+                };
+
                 return CreatedAtAction(
                     nameof(ObtenerPorId),
                     new { id = airportId },
-                    aeropuertoCreado
+                    respuesta
                 );
             }
             catch (ArgumentException ex)
@@ -63,10 +110,12 @@ namespace ZenithSkyGrupo2.Api.Controllers
                 return BadRequest(ex.Message);
             }
             catch (SqlException ex) when (
-                ex.Number == 2601 || ex.Number == 2627)
+                ex.Number == 2601 ||
+                ex.Number == 2627)
             {
                 return Conflict(
-                    "El código IATA o ICAO ya está registrado.");
+                    "El código IATA o ICAO ya está registrado."
+                );
             }
         }
 
@@ -74,31 +123,42 @@ namespace ZenithSkyGrupo2.Api.Controllers
         [HttpPut("{id}")]
         public IActionResult Actualizar(
             int id,
-            [FromBody] Airport aeropuerto)
+            [FromBody] AirportDTO aeropuertoDTO)
         {
             try
             {
-                aeropuerto.AirportId = id;
+                Airport aeropuerto = new Airport(
+                    id,
+                    aeropuertoDTO.Iata,
+                    aeropuertoDTO.Icao,
+                    aeropuertoDTO.Name
+                );
 
                 bool actualizado =
                     airportService.Actualizar(aeropuerto);
 
                 if (!actualizado)
                 {
-                    return NotFound("El aeropuerto no existe.");
+                    return NotFound(
+                        "El aeropuerto no existe."
+                    );
                 }
 
-                return Ok("Aeropuerto actualizado correctamente.");
+                return Ok(
+                    "Aeropuerto actualizado correctamente."
+                );
             }
             catch (ArgumentException ex)
             {
                 return BadRequest(ex.Message);
             }
             catch (SqlException ex) when (
-                ex.Number == 2601 || ex.Number == 2627)
+                ex.Number == 2601 ||
+                ex.Number == 2627)
             {
                 return Conflict(
-                    "El código IATA o ICAO ya está registrado.");
+                    "El código IATA o ICAO ya está registrado."
+                );
             }
         }
 
@@ -106,20 +166,26 @@ namespace ZenithSkyGrupo2.Api.Controllers
         [HttpDelete("{id}")]
         public IActionResult Eliminar(int id)
         {
-            int resultado = airportService.Eliminar(id);
+            int resultado =
+                airportService.Eliminar(id);
 
             if (resultado == 404)
             {
-                return NotFound("El aeropuerto no existe.");
+                return NotFound(
+                    "El aeropuerto no existe."
+                );
             }
 
             if (resultado == 409)
             {
                 return Conflict(
-                    "No se puede eliminar el aeropuerto porque está asignado como aeropuerto base de una aerolínea.");
+                    "No se puede eliminar el aeropuerto porque está asignado como aeropuerto base de una aerolínea."
+                );
             }
 
-            return Ok("Aeropuerto eliminado correctamente.");
+            return Ok(
+                "Aeropuerto eliminado correctamente."
+            );
         }
     }
 }
