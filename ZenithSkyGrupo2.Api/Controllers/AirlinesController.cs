@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
+using Microsoft.Data.SqlClient;
 using ZenithSkyGrupo2.Api.Business;
 using ZenithSkyGrupo2.Api.Domain;
+using ZenithSkyGrupo2.Api.Dto;
 
 namespace ZenithSkyGrupo2.Api.Controllers
 {
@@ -19,66 +20,107 @@ namespace ZenithSkyGrupo2.Api.Controllers
 
         // GET /api/airlines
         [HttpGet]
-        public ActionResult<List<Airline>> ObtenerTodos()
+        public ActionResult<List<AirlineDTO>> ObtenerTodos()
         {
             List<Airline> aerolineas =
                 airlineService.ObtenerTodos();
 
-            return Ok(aerolineas);
+            List<AirlineDTO> respuesta = aerolineas
+                .Select(a => new AirlineDTO
+                {
+                    AirlineId = a.AirlineId,
+                    Iata = a.Iata,
+                    Airlinename = a.Airlinename,
+                    BaseAirport = a.BaseAirport,
+                    BaseAirportIata = a.BaseAirportIata,
+                    BaseAirportName = a.BaseAirportName
+                })
+                .ToList();
+
+            return Ok(respuesta);
         }
 
         // GET /api/airlines/{id}
         [HttpGet("{id}")]
-        public ActionResult<Airline> ObtenerPorId(int id)
+        public ActionResult<AirlineDTO> ObtenerPorId(int id)
         {
             Airline? airline =
                 airlineService.ObtenerPorId(id);
 
             if (airline == null)
             {
-                return NotFound();
+                return NotFound(
+                    "La aerolínea no existe."
+                );
             }
 
-            return Ok(airline);
+            AirlineDTO respuesta = new AirlineDTO
+            {
+                AirlineId = airline.AirlineId,
+                Iata = airline.Iata,
+                Airlinename = airline.Airlinename,
+                BaseAirport = airline.BaseAirport,
+                BaseAirportIata = airline.BaseAirportIata,
+                BaseAirportName = airline.BaseAirportName
+            };
+
+            return Ok(respuesta);
         }
 
         // POST /api/airlines
         [HttpPost]
-        public ActionResult Crear([FromBody] Airline airline)
+        public ActionResult Crear(
+            [FromBody] AirlineDTO airlineDTO)
         {
-            if (airline == null)
-            {
-                return BadRequest();
-            }
-
-            if (string.IsNullOrWhiteSpace(airline.Iata) ||
-                airline.Iata.Trim().Length != 2)
+            if (airlineDTO == null)
             {
                 return BadRequest(
-                    "El IATA de la aerolínea debe tener exactamente 2 caracteres.");
+                    "Los datos de la aerolínea son obligatorios."
+                );
             }
 
-            if (string.IsNullOrWhiteSpace(airline.Airlinename))
+            if (string.IsNullOrWhiteSpace(airlineDTO.Iata) ||
+                airlineDTO.Iata.Trim().Length != 2)
             {
                 return BadRequest(
-                    "El nombre de la aerolínea es obligatorio.");
+                    "El IATA de la aerolínea debe tener exactamente 2 caracteres."
+                );
             }
 
-            if (airline.BaseAirport <= 0)
+            if (string.IsNullOrWhiteSpace(
+                    airlineDTO.Airlinename))
             {
                 return BadRequest(
-                    "Debe indicar un aeropuerto base válido.");
+                    "El nombre de la aerolínea es obligatorio."
+                );
             }
 
-            if (!airlineService.ExisteAeropuerto(airline.BaseAirport))
+            if (airlineDTO.BaseAirport <= 0)
             {
                 return BadRequest(
-                    "El aeropuerto base indicado no existe.");
+                    "Debe indicar un aeropuerto base válido."
+                );
             }
+
+            if (!airlineService.ExisteAeropuerto(
+                    airlineDTO.BaseAirport))
+            {
+                return BadRequest(
+                    "El aeropuerto base indicado no existe."
+                );
+            }
+
+            Airline airline = new Airline(
+                0,
+                airlineDTO.Iata,
+                airlineDTO.Airlinename,
+                airlineDTO.BaseAirport
+            );
 
             try
             {
-                int id = airlineService.Crear(airline);
+                int id =
+                    airlineService.Crear(airline);
 
                 return CreatedAtAction(
                     nameof(ObtenerPorId),
@@ -86,10 +128,11 @@ namespace ZenithSkyGrupo2.Api.Controllers
                     new { airline_id = id }
                 );
             }
-            catch (Microsoft.Data.SqlClient.SqlException)
+            catch (SqlException)
             {
                 return BadRequest(
-                    "Los datos de la aerolínea no son válidos.");
+                    "Los datos de la aerolínea no son válidos."
+                );
             }
         }
 
@@ -97,39 +140,52 @@ namespace ZenithSkyGrupo2.Api.Controllers
         [HttpPut("{id}")]
         public ActionResult Actualizar(
             int id,
-            [FromBody] Airline airline)
+            [FromBody] AirlineDTO airlineDTO)
         {
-            if (airline == null)
-            {
-                return BadRequest();
-            }
-
-            if (string.IsNullOrWhiteSpace(airline.Iata) ||
-                airline.Iata.Trim().Length != 2)
+            if (airlineDTO == null)
             {
                 return BadRequest(
-                    "El IATA de la aerolínea debe tener exactamente 2 caracteres.");
+                    "Los datos de la aerolínea son obligatorios."
+                );
             }
 
-            if (string.IsNullOrWhiteSpace(airline.Airlinename))
+            if (string.IsNullOrWhiteSpace(airlineDTO.Iata) ||
+                airlineDTO.Iata.Trim().Length != 2)
             {
                 return BadRequest(
-                    "El nombre de la aerolínea es obligatorio.");
+                    "El IATA de la aerolínea debe tener exactamente 2 caracteres."
+                );
             }
 
-            if (airline.BaseAirport <= 0)
+            if (string.IsNullOrWhiteSpace(
+                    airlineDTO.Airlinename))
             {
                 return BadRequest(
-                    "Debe indicar un aeropuerto base válido.");
+                    "El nombre de la aerolínea es obligatorio."
+                );
             }
 
-            if (!airlineService.ExisteAeropuerto(airline.BaseAirport))
+            if (airlineDTO.BaseAirport <= 0)
             {
                 return BadRequest(
-                    "El aeropuerto base indicado no existe.");
+                    "Debe indicar un aeropuerto base válido."
+                );
             }
 
-            airline.AirlineId = id;
+            if (!airlineService.ExisteAeropuerto(
+                    airlineDTO.BaseAirport))
+            {
+                return BadRequest(
+                    "El aeropuerto base indicado no existe."
+                );
+            }
+
+            Airline airline = new Airline(
+                id,
+                airlineDTO.Iata,
+                airlineDTO.Airlinename,
+                airlineDTO.BaseAirport
+            );
 
             try
             {
@@ -138,15 +194,18 @@ namespace ZenithSkyGrupo2.Api.Controllers
 
                 if (!actualizado)
                 {
-                    return NotFound();
+                    return NotFound(
+                        "La aerolínea no existe."
+                    );
                 }
 
                 return NoContent();
             }
-            catch (Microsoft.Data.SqlClient.SqlException)
+            catch (SqlException)
             {
                 return BadRequest(
-                    "Los datos de la aerolínea no son válidos.");
+                    "Los datos de la aerolínea no son válidos."
+                );
             }
         }
 
@@ -159,13 +218,16 @@ namespace ZenithSkyGrupo2.Api.Controllers
 
             if (resultado == -1)
             {
-                return NotFound();
+                return NotFound(
+                    "La aerolínea no existe."
+                );
             }
 
             if (resultado == 0)
             {
                 return Conflict(
-                    "No se puede eliminar la aerolínea porque tiene aviones asociados.");
+                    "No se puede eliminar la aerolínea porque tiene aviones asociados."
+                );
             }
 
             return NoContent();

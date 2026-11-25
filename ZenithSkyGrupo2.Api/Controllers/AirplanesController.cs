@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ZenithSkyGrupo2.Api.Business;
-using System.Collections.Generic;
 using ZenithSkyGrupo2.Api.Domain;
-using System;
+using ZenithSkyGrupo2.Api.Dto;
 
 namespace ZenithSkyGrupo2.Api.Controllers
 {
@@ -12,46 +11,98 @@ namespace ZenithSkyGrupo2.Api.Controllers
     {
         private readonly AirplaneService airplaneService;
 
-        public AirplanesController(AirplaneService airplaneService)
+        public AirplanesController(
+            AirplaneService airplaneService)
         {
             this.airplaneService = airplaneService;
         }
 
-        [HttpGet] // GET /api/airplanes
-        public ActionResult<List<Airplane>> ObtenerTodos(
+        // GET /api/airplanes
+        // GET /api/airplanes?typeId=1
+        // GET /api/airplanes?airlineId=1
+        [HttpGet]
+        public ActionResult<List<AirplaneDTO>> ObtenerTodos(
             [FromQuery] int? typeId = null,
             [FromQuery] int? airlineId = null)
         {
             List<Airplane> aviones =
-                airplaneService.ObtenerTodos(typeId, airlineId);
+                airplaneService.ObtenerTodos(
+                    typeId,
+                    airlineId
+                );
 
-            return Ok(aviones);
+            List<AirplaneDTO> respuesta = aviones
+                .Select(a => new AirplaneDTO
+                {
+                    AirplaneId = a.AirplaneId,
+                    Capacity = a.Capacity,
+                    TypeId = a.TypeId,
+                    AirlineId = a.AirlineId,
+                    Identifier = a.Identifier,
+                    Description = a.Description,
+                    AirlineName = a.AirlineName
+                })
+                .ToList();
+
+            return Ok(respuesta);
         }
 
-        [HttpGet("{id}")] // GET /api/airplanes/{id}
-        public ActionResult<Airplane> ObtenerPorId(int id)
+        // GET /api/airplanes/{id}
+        [HttpGet("{id}")]
+        public ActionResult<AirplaneDTO> ObtenerPorId(int id)
         {
-            Airplane? avion = airplaneService.ObtenerPorId(id);
+            Airplane? avion =
+                airplaneService.ObtenerPorId(id);
 
             if (avion == null)
             {
-                return NotFound("El avión no existe.");
+                return NotFound(
+                    "El avión no existe."
+                );
             }
 
-            return Ok(avion);
+            AirplaneDTO respuesta = new AirplaneDTO
+            {
+                AirplaneId = avion.AirplaneId,
+                Capacity = avion.Capacity,
+                TypeId = avion.TypeId,
+                AirlineId = avion.AirlineId,
+                Identifier = avion.Identifier,
+                Description = avion.Description,
+                AirlineName = avion.AirlineName
+            };
+
+            return Ok(respuesta);
         }
 
-        [HttpPost] // POST /api/airplanes
-        public IActionResult Insertar([FromBody] Airplane avion)
+        // POST /api/airplanes
+        [HttpPost]
+        public IActionResult Insertar(
+            [FromBody] AirplaneDTO avionDTO)
         {
             try
             {
+                Airplane avion = new Airplane(
+                    0,
+                    avionDTO.Capacity,
+                    avionDTO.TypeId,
+                    avionDTO.AirlineId,
+                    "",
+                    null,
+                    ""
+                );
+
                 if (airplaneService.Insertar(avion))
                 {
-                    return StatusCode(201, "Avión creado correctamente.");
+                    return StatusCode(
+                        201,
+                        "Avión creado correctamente."
+                    );
                 }
 
-                return BadRequest("No se pudo insertar el avión.");
+                return BadRequest(
+                    "No se pudo insertar el avión."
+                );
             }
             catch (ArgumentException ex)
             {
@@ -59,20 +110,32 @@ namespace ZenithSkyGrupo2.Api.Controllers
             }
         }
 
-        [HttpPut("{id}")] // PUT /api/airplanes/{id}
-        public IActionResult Actualizar(int id,
-            [FromBody] Airplane avion)
+        // PUT /api/airplanes/{id}
+        [HttpPut("{id}")]
+        public IActionResult Actualizar(
+            int id,
+            [FromBody] AirplaneDTO avionDTO)
         {
             try
             {
-                avion.AirplaneId = id;
+                Airplane avion = new Airplane(
+                    id,
+                    avionDTO.Capacity,
+                    avionDTO.TypeId,
+                    avionDTO.AirlineId,
+                    "",
+                    null,
+                    ""
+                );
 
                 if (airplaneService.Actualizar(avion))
                 {
                     return NoContent();
                 }
 
-                return NotFound("El avión no existe.");
+                return NotFound(
+                    "El avión no existe."
+                );
             }
             catch (ArgumentException ex)
             {
@@ -80,7 +143,8 @@ namespace ZenithSkyGrupo2.Api.Controllers
             }
         }
 
-        [HttpDelete("{id}")] // DELETE /api/airplanes/{id}
+        // DELETE /api/airplanes/{id}
+        [HttpDelete("{id}")]
         public IActionResult Eliminar(int id)
         {
             if (airplaneService.Eliminar(id))
@@ -88,7 +152,9 @@ namespace ZenithSkyGrupo2.Api.Controllers
                 return NoContent();
             }
 
-            return NotFound("El avión no existe.");
+            return NotFound(
+                "El avión no existe."
+            );
         }
     }
 }

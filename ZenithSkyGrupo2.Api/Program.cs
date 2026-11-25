@@ -1,4 +1,3 @@
-
 using ZenithSkyGrupo2.Api.Business;
 using ZenithSkyGrupo2.Api.Data;
 
@@ -22,22 +21,20 @@ builder.Services.AddScoped<AirlineService>();
 builder.Services.AddScoped<AirportService>();
 builder.Services.AddScoped<AirplaneService>();
 
+// Configurar Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configurar el flujo de la aplicación
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// Configurar Swagger
+app.UseSwagger();
+app.UseSwaggerUI();
 
-app.UseHttpsRedirection();
-
+// Configurar autorización
 app.UseAuthorization();
 
+// Mapear los controladores
 app.MapControllers();
 
 app.Run();
